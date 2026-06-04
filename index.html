@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Lap Note</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <button class="icon-button hidden" id="backButton" type="button" aria-label="戻る">
+          <span aria-hidden="true">‹</span>
+        </button>
+        <div>
+          <p class="eyebrow" id="screenCrumb">Lap Note</p>
+          <h1 id="screenTitle">大会</h1>
+        </div>
+        <button class="icon-button" id="exportButton" type="button" aria-label="画像生成">
+          <span aria-hidden="true">▣</span>
+        </button>
+      </header>
+
+      <main>
+        <section class="panel" id="meetScreen">
+          <form class="add-form" id="meetForm">
+            <label>
+              <span>大会名</span>
+              <input id="meetName" autocomplete="off" placeholder="例：関東選手権" required />
+            </label>
+            <button class="primary-button" type="submit">大会を作成</button>
+          </form>
+          <div class="list" id="meetList"></div>
+        </section>
+
+        <section class="panel hidden" id="swimmerScreen">
+          <form class="add-form" id="swimmerForm">
+            <label>
+              <span>選手名</span>
+              <input id="swimmerName" autocomplete="off" placeholder="例：水泳太郎" required />
+            </label>
+            <button class="primary-button" type="submit">選手を追加</button>
+          </form>
+          <div class="list" id="swimmerList"></div>
+        </section>
+
+        <section class="panel hidden" id="eventScreen">
+          <form class="add-form" id="eventForm">
+            <label>
+              <span>出場種目</span>
+              <input id="eventName" autocomplete="off" placeholder="例：100mFr" required />
+            </label>
+            <label>
+              <span>距離</span>
+              <select id="eventDistance">
+                <option value="50">50m</option>
+                <option value="100" selected>100m</option>
+                <option value="200">200m</option>
+                <option value="400">400m</option>
+                <option value="800">800m</option>
+                <option value="1500">1500m</option>
+              </select>
+            </label>
+            <button class="primary-button" type="submit">種目を追加</button>
+          </form>
+          <div class="list" id="eventList"></div>
+        </section>
+
+        <section class="panel hidden" id="entryScreen">
+          <form class="entry-form" id="entryForm">
+            <div class="field-grid">
+              <label>
+                <span>組</span>
+                <input id="heatInput" inputmode="numeric" placeholder="3" />
+              </label>
+              <label>
+                <span>レーン</span>
+                <input id="laneInput" inputmode="numeric" placeholder="2" />
+              </label>
+              <label>
+                <span>RT</span>
+                <input id="rtInput" inputmode="decimal" placeholder="0.65" />
+              </label>
+              <label>
+                <span>最終タイム</span>
+                <input id="recordInput" inputmode="decimal" placeholder="1:00.23" />
+              </label>
+            </div>
+
+            <div class="lap-head">
+              <h2>ラップタイム</h2>
+              <button class="secondary-button" id="fillRecordButton" type="button">最終タイムを反映</button>
+            </div>
+            <div class="lap-table" id="lapTable"></div>
+
+            <div class="sticky-actions">
+              <button class="secondary-button" id="saveEntryButton" type="submit">保存</button>
+              <button class="primary-button" id="makeImageButton" type="button">画像を生成</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel hidden" id="previewScreen">
+          <div class="preview-wrap">
+            <canvas id="lapCanvas" width="1200" height="1200"></canvas>
+          </div>
+          <div class="sticky-actions">
+            <button class="secondary-button" id="downloadButton" type="button">画像を保存</button>
+            <button class="primary-button" id="backToEntryButton" type="button">入力へ戻る</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="emptyTemplate">
+      <div class="empty">まだ登録がありません</div>
+    </template>
+
+    <script src="app.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      }
+    </script>
+  </body>
+</html>
