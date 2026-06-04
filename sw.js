@@ -1,4 +1,4 @@
-const CACHE_NAME = "lap-note-v7";
+const CACHE_NAME = "lap-note-v8";
 const FILES = [
   "./",
   "./index.html",

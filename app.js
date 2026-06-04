@@ -435,10 +435,10 @@ async function createCanvasImage() {
   const rows = buildLapRows(event);
   const totalRows = Math.max(10, Math.ceil(rows.length / 2));
   const rowH = (bottom - lapTop) / totalRows;
-  const leftDistanceX = tableLeft + 105;
-  const leftTimeX = tableLeft + 245;
-  const rightDistanceX = mid + 105;
-  const rightTimeX = mid + 245;
+  const leftDistanceX = tableLeft + 130;
+  const leftTimeX = tableLeft + 270;
+  const rightDistanceX = mid + 130;
+  const rightTimeX = mid + 270;
 
   ctx.strokeStyle = line;
   ctx.lineWidth = 2;
@@ -478,11 +478,11 @@ async function createCanvasImage() {
     const splitX = side === "left" ? mid - 24 : right - 24;
     const valueX = side === "left" ? leftTimeX - 20 : rightTimeX - 20;
     const distX = side === "left" ? leftDistanceX - 18 : rightDistanceX - 18;
+    const distMaxWidth = side === "left" ? leftDistanceX - tableLeft - 28 : rightDistanceX - mid - 28;
     const distSize = totalRows > 12 ? 28 : 36;
     const timeSize = totalRows > 12 ? 27 : 34;
     const splitSize = totalRows > 12 ? 20 : 25;
-    ctx.font = `700 ${distSize}px system-ui, sans-serif`;
-    ctx.fillText(`${row.distance}M`, distX, y);
+    fitRightText(ctx, `${row.distance}M`, distX, y, distMaxWidth, distSize, 20);
     ctx.font = `500 ${timeSize}px system-ui, sans-serif`;
     ctx.fillText(row.total || "", valueX, y);
     ctx.font = `700 ${splitSize}px system-ui, sans-serif`;
@@ -531,6 +531,18 @@ function fitText(ctx, text, x, y, maxWidth, size) {
     fontSize -= 2;
   } while (ctx.measureText(text).width > maxWidth && fontSize > 18);
   ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function fitRightText(ctx, text, rightX, y, maxWidth, size, minSize = 18) {
+  ctx.save();
+  ctx.textAlign = "right";
+  let fontSize = size;
+  do {
+    ctx.font = `700 ${fontSize}px system-ui, sans-serif`;
+    fontSize -= 1;
+  } while (ctx.measureText(text).width > maxWidth && fontSize > minSize);
+  ctx.fillText(text, rightX, y);
   ctx.restore();
 }
 
