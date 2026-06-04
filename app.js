@@ -25,6 +25,7 @@ const state = {
 };
 
 let lastLapAdvanceAt = 0;
+let focusedLapDistance = null;
 
 const el = {
   title: document.querySelector("#screenTitle"),
@@ -163,6 +164,7 @@ function renderMeets() {
         showScreen("swimmers");
       },
       onDelete: () => {
+        if (!confirm(`大会「${meet.name}」を削除しますか？\n登録済みの選手・種目・ラップ記録も削除されます。`)) return;
         state.data.meets = state.data.meets.filter((item) => item.id !== meet.id);
         saveData();
         render();
@@ -182,6 +184,7 @@ function renderSwimmers() {
         showScreen("events");
       },
       onDelete: () => {
+        if (!confirm(`選手「${swimmer.name}」を削除しますか？\n登録済みの種目・ラップ記録も削除されます。`)) return;
         meet.swimmers = meet.swimmers.filter((item) => item.id !== swimmer.id);
         saveData();
         render();
@@ -201,6 +204,7 @@ function renderEvents() {
         showScreen("entry");
       },
       onDelete: () => {
+        if (!confirm(`種目「${event.name}」を削除しますか？\n入力済みのラップ記録も削除されます。`)) return;
         swimmer.events = swimmer.events.filter((item) => item.id !== event.id);
         saveData();
         render();
@@ -231,6 +235,9 @@ function renderEntry() {
     `;
     const input = row.querySelector("input");
     input.value = event.laps?.[distance] ?? "";
+    input.addEventListener("focus", () => {
+      focusedLapDistance = distance;
+    });
     input.addEventListener("input", () => {
       event.laps[distance] = input.value;
       if (distance === event.distance) el.record.value = input.value;
@@ -241,6 +248,9 @@ function renderEntry() {
       advanceLapFromKeyboard(keyboardEvent, distance);
     });
     input.addEventListener("keyup", (keyboardEvent) => {
+      advanceLapFromKeyboard(keyboardEvent, distance);
+    });
+    input.addEventListener("keypress", (keyboardEvent) => {
       advanceLapFromKeyboard(keyboardEvent, distance);
     });
     input.addEventListener("beforeinput", (inputEvent) => {
@@ -270,9 +280,12 @@ function focusNextLapInput(distance) {
   const index = distances.indexOf(distance);
   const nextDistance = distances[index + 1];
   if (nextDistance) {
-    el.lapTable.querySelector(`[data-distance="${nextDistance}"]`)?.focus();
+    const nextInput = el.lapTable.querySelector(`[data-distance="${nextDistance}"]`);
+    nextInput?.focus();
+    focusedLapDistance = nextDistance;
   } else {
     el.record.focus();
+    focusedLapDistance = null;
   }
 }
 
@@ -531,7 +544,7 @@ el.eventForm.addEventListener("submit", (event) => {
 
 el.entryForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  const activeDistance = document.activeElement?.dataset?.distance;
+  const activeDistance = document.activeElement?.dataset?.distance ?? focusedLapDistance;
   if (activeDistance) {
     focusNextLapInput(Number(activeDistance));
     return;
