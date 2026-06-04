@@ -24,6 +24,8 @@ const state = {
   eventId: null,
 };
 
+let lastLapAdvanceAt = 0;
+
 const el = {
   title: document.querySelector("#screenTitle"),
   crumb: document.querySelector("#screenCrumb"),
@@ -236,14 +238,29 @@ function renderEntry() {
       updateSplits();
     });
     input.addEventListener("keydown", (keyboardEvent) => {
-      if (keyboardEvent.key !== "Enter") return;
-      keyboardEvent.preventDefault();
+      advanceLapFromKeyboard(keyboardEvent, distance);
+    });
+    input.addEventListener("keyup", (keyboardEvent) => {
+      advanceLapFromKeyboard(keyboardEvent, distance);
+    });
+    input.addEventListener("beforeinput", (inputEvent) => {
+      if (inputEvent.inputType !== "insertLineBreak" || inputEvent.isComposing) return;
+      inputEvent.preventDefault();
       focusNextLapInput(distance);
     });
     el.lapTable.append(row);
   });
 
   updateSplits();
+}
+
+function advanceLapFromKeyboard(event, distance) {
+  if (event.key !== "Enter" || event.isComposing) return;
+  event.preventDefault();
+  const now = Date.now();
+  if (now - lastLapAdvanceAt < 160) return;
+  lastLapAdvanceAt = now;
+  focusNextLapInput(distance);
 }
 
 function focusNextLapInput(distance) {
@@ -514,6 +531,11 @@ el.eventForm.addEventListener("submit", (event) => {
 
 el.entryForm.addEventListener("submit", (event) => {
   event.preventDefault();
+  const activeDistance = document.activeElement?.dataset?.distance;
+  if (activeDistance) {
+    focusNextLapInput(Number(activeDistance));
+    return;
+  }
   saveEntryFields();
 });
 
