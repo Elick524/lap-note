@@ -1,5 +1,15 @@
-const CACHE_NAME = "lap-note-v6";
-const FILES = ["./", "./index.html", "./styles.css", "./app.js", "./manifest.webmanifest", "./assets/lap-logo-gray.png"];
+const CACHE_NAME = "lap-note-v7";
+const FILES = [
+  "./",
+  "./index.html",
+  "./styles.css",
+  "./app.js",
+  "./manifest.webmanifest",
+  "./assets/lap-logo-gray.png",
+  "./assets/app-icon-180.png",
+  "./assets/app-icon-192.png",
+  "./assets/app-icon-512.png",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES)).then(() => self.skipWaiting()));
