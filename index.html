@@ -117,6 +117,17 @@
       <div class="empty">まだ登録がありません</div>
     </template>
 
+    <div class="confirm-overlay hidden" id="confirmOverlay" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="confirm-box">
+        <h2 id="confirmTitle">削除しますか？</h2>
+        <p id="confirmMessage"></p>
+        <div class="confirm-actions">
+          <button class="secondary-button" id="confirmCancelButton" type="button">キャンセル</button>
+          <button class="danger-button" id="confirmOkButton" type="button">削除する</button>
+        </div>
+      </div>
+    </div>
+
     <script src="app.js"></script>
     <script>
       if ("serviceWorker" in navigator) {

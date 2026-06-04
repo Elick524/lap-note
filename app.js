@@ -60,7 +60,14 @@ const el = {
   canvas: document.querySelector("#lapCanvas"),
   download: document.querySelector("#downloadButton"),
   backToEntry: document.querySelector("#backToEntryButton"),
+  confirmOverlay: document.querySelector("#confirmOverlay"),
+  confirmTitle: document.querySelector("#confirmTitle"),
+  confirmMessage: document.querySelector("#confirmMessage"),
+  confirmCancel: document.querySelector("#confirmCancelButton"),
+  confirmOk: document.querySelector("#confirmOkButton"),
 };
+
+let pendingConfirmAction = null;
 
 function loadData() {
   try {
@@ -164,10 +171,15 @@ function renderMeets() {
         showScreen("swimmers");
       },
       onDelete: () => {
-        if (!confirm(`大会「${meet.name}」を削除しますか？\n登録済みの選手・種目・ラップ記録も削除されます。`)) return;
-        state.data.meets = state.data.meets.filter((item) => item.id !== meet.id);
-        saveData();
-        render();
+        showConfirm({
+          title: "大会を削除しますか？",
+          message: `大会「${meet.name}」を削除します。\n登録済みの選手・種目・ラップ記録も削除されます。`,
+          onConfirm: () => {
+            state.data.meets = state.data.meets.filter((item) => item.id !== meet.id);
+            saveData();
+            render();
+          },
+        });
       },
     }),
   );
@@ -184,10 +196,15 @@ function renderSwimmers() {
         showScreen("events");
       },
       onDelete: () => {
-        if (!confirm(`選手「${swimmer.name}」を削除しますか？\n登録済みの種目・ラップ記録も削除されます。`)) return;
-        meet.swimmers = meet.swimmers.filter((item) => item.id !== swimmer.id);
-        saveData();
-        render();
+        showConfirm({
+          title: "選手を削除しますか？",
+          message: `選手「${swimmer.name}」を削除します。\n登録済みの種目・ラップ記録も削除されます。`,
+          onConfirm: () => {
+            meet.swimmers = meet.swimmers.filter((item) => item.id !== swimmer.id);
+            saveData();
+            render();
+          },
+        });
       },
     }),
   );
@@ -204,13 +221,31 @@ function renderEvents() {
         showScreen("entry");
       },
       onDelete: () => {
-        if (!confirm(`種目「${event.name}」を削除しますか？\n入力済みのラップ記録も削除されます。`)) return;
-        swimmer.events = swimmer.events.filter((item) => item.id !== event.id);
-        saveData();
-        render();
+        showConfirm({
+          title: "種目を削除しますか？",
+          message: `種目「${event.name}」を削除します。\n入力済みのラップ記録も削除されます。`,
+          onConfirm: () => {
+            swimmer.events = swimmer.events.filter((item) => item.id !== event.id);
+            saveData();
+            render();
+          },
+        });
       },
     }),
   );
+}
+
+function showConfirm({ title, message, onConfirm }) {
+  pendingConfirmAction = onConfirm;
+  el.confirmTitle.textContent = title;
+  el.confirmMessage.textContent = message;
+  el.confirmOverlay.classList.remove("hidden");
+  el.confirmCancel.focus();
+}
+
+function hideConfirm() {
+  pendingConfirmAction = null;
+  el.confirmOverlay.classList.add("hidden");
 }
 
 function renderEntry() {
@@ -577,6 +612,22 @@ el.export.addEventListener("click", async () => {
 el.download.addEventListener("click", downloadCanvas);
 
 el.backToEntry.addEventListener("click", () => showScreen("entry"));
+
+el.confirmCancel.addEventListener("click", hideConfirm);
+
+el.confirmOverlay.addEventListener("click", (event) => {
+  if (event.target === el.confirmOverlay) hideConfirm();
+});
+
+el.confirmOk.addEventListener("click", () => {
+  const action = pendingConfirmAction;
+  hideConfirm();
+  action?.();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !el.confirmOverlay.classList.contains("hidden")) hideConfirm();
+});
 
 async function downloadCanvas() {
   await createCanvasImage();

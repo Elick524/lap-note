@@ -1,4 +1,4 @@
-const CACHE_NAME = "lap-note-v5";
+const CACHE_NAME = "lap-note-v6";
 const FILES = ["./", "./index.html", "./styles.css", "./app.js", "./manifest.webmanifest", "./assets/lap-logo-gray.png"];
 
 self.addEventListener("install", (event) => {
