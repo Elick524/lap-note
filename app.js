@@ -223,7 +223,7 @@ function renderEntry() {
       <div class="lap-distance">${distance}m</div>
       <label>
         <span>通過</span>
-        <input inputmode="decimal" data-distance="${distance}" placeholder="例：${distance === event.distance ? "1:00.23" : "30.12"}" />
+        <input data-distance="${distance}" enterkeyhint="next" placeholder="例：${distance === event.distance ? "1:00.23" : "30.12"}" />
       </label>
       <div class="lap-split" data-split-for="${distance}">-</div>
     `;
@@ -235,10 +235,28 @@ function renderEntry() {
       saveEntryFields();
       updateSplits();
     });
+    input.addEventListener("keydown", (keyboardEvent) => {
+      if (keyboardEvent.key !== "Enter") return;
+      keyboardEvent.preventDefault();
+      focusNextLapInput(distance);
+    });
     el.lapTable.append(row);
   });
 
   updateSplits();
+}
+
+function focusNextLapInput(distance) {
+  const event = currentEvent();
+  if (!event) return;
+  const distances = lapRules[event.distance];
+  const index = distances.indexOf(distance);
+  const nextDistance = distances[index + 1];
+  if (nextDistance) {
+    el.lapTable.querySelector(`[data-distance="${nextDistance}"]`)?.focus();
+  } else {
+    el.record.focus();
+  }
 }
 
 function parseTime(value) {
