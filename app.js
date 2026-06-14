@@ -1,4 +1,5 @@
 const STORAGE_KEY = "lap-note-v1";
+const ASSET_VERSION = "20260614-1";
 
 const lapRules = {
   50: [15, 25, 50],
@@ -14,7 +15,7 @@ const logoReady = new Promise((resolve) => {
   logoImage.onload = resolve;
   logoImage.onerror = resolve;
 });
-logoImage.src = "assets/lap-logo-gray.png";
+logoImage.src = `assets/lap-logo-gray.png?v=${ASSET_VERSION}`;
 
 const state = {
   data: loadData(),
@@ -49,6 +50,9 @@ const el = {
   meetList: document.querySelector("#meetList"),
   swimmerList: document.querySelector("#swimmerList"),
   eventList: document.querySelector("#eventList"),
+  backup: document.querySelector("#backupButton"),
+  restore: document.querySelector("#restoreButton"),
+  restoreFile: document.querySelector("#restoreFileInput"),
   entryForm: document.querySelector("#entryForm"),
   heat: document.querySelector("#heatInput"),
   lane: document.querySelector("#laneInput"),
@@ -235,10 +239,13 @@ function renderEvents() {
   );
 }
 
-function showConfirm({ title, message, onConfirm }) {
+function showConfirm({ title, message, onConfirm, okText = "削除する", cancelText = "キャンセル", danger = true }) {
   pendingConfirmAction = onConfirm;
   el.confirmTitle.textContent = title;
   el.confirmMessage.textContent = message;
+  el.confirmOk.textContent = okText;
+  el.confirmCancel.textContent = cancelText;
+  el.confirmOk.className = danger ? "danger-button" : "primary-button";
   el.confirmOverlay.classList.remove("hidden");
   el.confirmCancel.focus();
 }
@@ -625,6 +632,15 @@ el.download.addEventListener("click", downloadCanvas);
 
 el.backToEntry.addEventListener("click", () => showScreen("entry"));
 
+el.backup.addEventListener("click", exportBackup);
+
+el.restore.addEventListener("click", () => {
+  el.restoreFile.value = "";
+  el.restoreFile.click();
+});
+
+el.restoreFile.addEventListener("change", importBackup);
+
 el.confirmCancel.addEventListener("click", hideConfirm);
 
 el.confirmOverlay.addEventListener("click", (event) => {
@@ -640,6 +656,59 @@ el.confirmOk.addEventListener("click", () => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !el.confirmOverlay.classList.contains("hidden")) hideConfirm();
 });
+
+function exportBackup() {
+  const payload = {
+    app: "Lap Note",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    data: state.data,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const stamp = new Date().toISOString().slice(0, 10).replaceAll("-", "");
+  link.download = `lap-note-backup-${stamp}.json`;
+  link.href = url;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function importBackup(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(String(reader.result));
+      const data = parsed.data ?? parsed;
+      if (!data || !Array.isArray(data.meets)) throw new Error("Invalid backup");
+      showConfirm({
+        title: "データを読み込みますか？",
+        message: "現在の大会・選手・ラップ記録は、読み込むデータで上書きされます。",
+        okText: "読み込む",
+        danger: false,
+        onConfirm: () => {
+          state.data = data;
+          state.meetId = null;
+          state.swimmerId = null;
+          state.eventId = null;
+          saveData();
+          showScreen("meets");
+        },
+      });
+    } catch {
+      showConfirm({
+        title: "読み込めませんでした",
+        message: "バックアップファイルの形式を確認してください。",
+        okText: "閉じる",
+        danger: false,
+        onConfirm: () => {},
+      });
+    }
+  };
+  reader.readAsText(file);
+}
 
 async function downloadCanvas() {
   await createCanvasImage();

@@ -3,6 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#007a78" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Lap Note" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="format-detection" content="telephone=no" />
     <title>Lap Note</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" type="image/png" sizes="192x192" href="assets/app-icon-192.png" />
@@ -34,6 +39,11 @@
             <button class="primary-button" type="submit">大会を作成</button>
           </form>
           <div class="list" id="meetList"></div>
+          <div class="data-tools">
+            <button class="secondary-button" id="backupButton" type="button">データを書き出す</button>
+            <button class="secondary-button" id="restoreButton" type="button">データを読み込む</button>
+            <input class="hidden" id="restoreFileInput" type="file" accept="application/json,.json" />
+          </div>
         </section>
 
         <section class="panel hidden" id="swimmerScreen">
@@ -142,7 +152,9 @@
 
         window.addEventListener("load", async () => {
           try {
-            const registration = await navigator.serviceWorker.register("./sw.js");
+            const registration = await navigator.serviceWorker.register("./sw.js?v=10", {
+              updateViaCache: "none",
+            });
             await registration.update();
             if (registration.waiting) {
               registration.waiting.postMessage({ type: "SKIP_WAITING" });

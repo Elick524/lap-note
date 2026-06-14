@@ -1,18 +1,19 @@
-const CACHE_NAME = "lap-note-v8";
+const CACHE_NAME = "lap-note-v10";
 const FILES = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
   "./manifest.webmanifest",
-  "./assets/lap-logo-gray.png",
+  "./assets/lap-logo-gray.png?v=20260614-1",
   "./assets/app-icon-180.png",
   "./assets/app-icon-192.png",
   "./assets/app-icon-512.png",
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES)).then(() => self.skipWaiting()));
+  const freshRequests = FILES.map((url) => new Request(url, { cache: "reload" }));
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(freshRequests)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (event) => {
@@ -28,7 +29,7 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: "no-store" })
       .then((response) => {
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
